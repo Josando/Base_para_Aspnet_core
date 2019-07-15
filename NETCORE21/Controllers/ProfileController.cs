@@ -14,6 +14,7 @@ namespace NETCORE21.Controllers
     [Route("api/[controller]")]
     public class ProfileController : Controller
     {
+        private readonly UserManager<AppUser> _userManager;
         private readonly ClaimsPrincipal _caller;
         private readonly NetCore21DbContext _appDbContext;
 
@@ -21,6 +22,7 @@ namespace NETCORE21.Controllers
         {
             _caller = httpContextAccessor.HttpContext.User;
             _appDbContext = appDbContext;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -39,6 +41,34 @@ namespace NETCORE21.Controllers
                 customer.Location,
                 customer.Locale,
                 customer.Gender
+            });
+        }
+
+        [HttpGet("user")]
+        public async Task<IActionResult> GetUser()
+        {
+            var userId = _caller.Claims.Single(c => c.Type == "id");
+            var customer = await _appDbContext.Customers.Include(c => c.Identity).SingleAsync(c => c.Identity.Id == userId.Value);
+            var rol = await _userManager.GetRolesAsync(customer.Identity);
+
+            string roles;
+
+            if (rol.Count == 0)
+            {
+                roles = "";
+            }
+            else
+            {
+                roles = rol[0];
+            }
+
+            return new OkObjectResult(new
+            {
+                customer.Identity.Id,
+                roles,
+                customer.Identity.Name,
+                auth_token = "",
+                expires_in = -1
             });
         }
     }

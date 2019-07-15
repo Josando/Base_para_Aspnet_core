@@ -51,20 +51,28 @@ namespace NETCORE21.Controllers
                 return await Task.FromResult<ClaimsIdentity>(null);
 
             // get the user to verifty
-            var userToVerify = await _userManager.FindByNameAsync(userName);
-            var roles = await _userManager.GetRolesAsync(userToVerify);
-
             string rol;
 
-            if (roles.Count == 0)
+            var userToVerify = await _userManager.FindByNameAsync(userName);
+
+            if (userToVerify != null)
+            {
+                var roles = await _userManager.GetRolesAsync(userToVerify);
+
+                if (roles.Count == 0)
+                {
+                    rol = "";
+                }
+                else
+                {
+                    rol = roles[0];
+                }
+            }
+            else
             {
                 rol = "";
             }
-            else {
-                rol = roles[0];
-            }
-
-                    
+                                          
 
             if (userToVerify == null) return await Task.FromResult<ClaimsIdentity>(null);
 
